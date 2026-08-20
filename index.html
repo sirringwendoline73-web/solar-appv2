@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solarpro AI Sizing Calculator</title>
+  <title>Solarpro AI - Sizing Calculator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -23,9 +23,67 @@
     </button>
   </header>
 
-  <!-- Main Content Area -->
-  <main class="max-w-6xl mx-auto w-full p-6 flex-grow">
-    <!-- Calculator Content -->
+  <!-- Main Calculator Content -->
+  <main class="max-w-6xl mx-auto w-full p-6 flex-grow space-y-8">
+    <div class="grid md:grid-cols-2 gap-6">
+      
+      <!-- Input Section -->
+      <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4">
+        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+          <i data-lucide="sliders"></i> System Inputs
+        </h2>
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Daily Energy Consumption (Wh/day)</label>
+          <input type="number" id="dailyWh" value="3500" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Peak Sun Hours (Hours/day)</label>
+          <input type="number" id="sunHours" value="4.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">System Voltage (V)</label>
+          <select id="sysVoltage" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+            <option value="12">12V</option>
+            <option value="24" selected>24V</option>
+            <option value="48">48V</option>
+          </select>
+        </div>
+
+        <button onclick="calculateSolar()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg mt-2">
+          Calculate Sizing
+        </button>
+      </div>
+
+      <!-- Results Section -->
+      <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4">
+        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+          <i data-lucide="zap"></i> Sizing Results
+        </h2>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+            <p class="text-xs text-slate-400">Total Solar Array Required</p>
+            <p id="resPanelsWatts" class="text-xl font-extrabold text-amber-400 mt-1">-- W</p>
+          </div>
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+            <p class="text-xs text-slate-400">Battery Bank Needed</p>
+            <p id="resBatteryAh" class="text-xl font-extrabold text-amber-400 mt-1">-- Ah</p>
+          </div>
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+            <p class="text-xs text-slate-400">Recommended Inverter</p>
+            <p id="resInverter" class="text-xl font-extrabold text-amber-400 mt-1">-- W</p>
+          </div>
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+            <p class="text-xs text-slate-400">Charge Controller</p>
+            <p id="resController" class="text-xl font-extrabold text-amber-400 mt-1">-- A</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </main>
 
   <!-- About Section with Image -->
@@ -65,6 +123,24 @@
   </footer>
 
   <script>
+    function calculateSolar() {
+      const wh = parseFloat(document.getElementById('dailyWh').value) || 0;
+      const hours = parseFloat(document.getElementById('sunHours').value) || 1;
+      const volts = parseFloat(document.getElementById('sysVoltage').value) || 24;
+
+      const totalWatts = Math.round((wh / hours) * 1.25);
+      const batteryAh = Math.round(((wh * 1.5) / volts));
+      const inverterW = Math.round(wh * 0.5);
+      const controllerA = Math.round(totalWatts / volts);
+
+      document.getElementById('resPanelsWatts').innerText = totalWatts + ' W';
+      document.getElementById('resBatteryAh').innerText = batteryAh + ' Ah';
+      document.getElementById('resInverter').innerText = inverterW + ' W';
+      document.getElementById('resController').innerText = controllerA + ' A';
+    }
+
+    // Run initial calculation on load
+    calculateSolar();
     lucide.createIcons();
   </script>
 </body>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solarpro AI Sizing Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen pb-12">
+    <header class="bg-slate-950 text-white border-b-4 border-amber-500 p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="bg-amber-500 text-slate-950 p-2 rounded-xl font-black text-xl">⚡</div>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-wide flex items-center gap-2">SOLARPRO AI <span class="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full">V2.6 PRO FIELD</span></h1>
+                <p class="text-xs text-slate-400">Cameroon Solar & Hydraulic Sizing</p>
+            </div>
+        </div>
+        <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition">
+            <i data-lucide="printer" class="w-4 h-4"></i> Print
+        </button>
+    </header>
+
+    <main class="max-w-4xl mx-auto mt-6 px-4 space-y-6">
+        <!-- MODE SELECTOR -->
+        <div class="grid grid-cols-2 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+            <button id="btnPV" onclick="setMode('pv')" class="py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-amber-500 text-slate-950 shadow-md">
+                <i data-lucide="sun" class="w-4 h-4"></i> Solar PV System
+            </button>
+            <button id="btnPump" onclick="setMode('pump')" class="py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white">
+                <i data-lucide="droplet" class="w-4 h-4"></i> Solar Water Pump
+            </button>
+        </div>
+
+        <!-- LOCATION & REGION SELECTOR -->
+        <div class="bg-slate-950/60 border border-slate-800 p-5 rounded-2xl space-y-4">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="map-pin" class="w-4 h-4"></i> 1. Location & Regional Solar Resource
+            </h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Installation Region / Zone</label>
+                    <select id="regionSelect" onchange="calculate()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white font-medium focus:ring-2 focus:ring-amber-500 outline-none">
+                        <option value="5.8">Far North / Maroua (5.8 PSH • Sahelian High)</option>
+                        <option value="5.6">North / Garoua (5.6 PSH • High Heat Derate)</option>
+                        <option value="5.2">Adamawa / Ngaoundéré (5.2 PSH • Savannah)</option>
+                        <option value="4.8" selected>North-West / Bamenda (4.8 PSH • High Altitude)</option>
+                        <option value="4.7">West / Bafoussam (4.7 PSH • Cool Highlands)</option>
+                        <option value="4.5">Center / Yaoundé (4.5 PSH • Moderate Temp)</option>
+                        <option value="4.4">East / Bertoua (4.4 PSH • Forest Zone)</option>
+                        <option value="4.2">Littoral / Douala (4.2 PSH • Coastal Humid)</option>
+                        <option value="4.2">South / Ebolowa (4.2 PSH • Rainforest)</option>
+                        <option value="4.1">South-West / Buea (4.1 PSH • Coastal High Rain)</option>
+                    </select>
+                </div>
+                <div class="flex items-center justify-between bg-slate-900 border border-slate-800 p-3 rounded-xl">
+                    <div>
+                        <div class="text-xs font-bold text-white">Budget Hardware Buffer</div>
+                        <div class="text-[10px] text-slate-400">Adds +50% surge safety for local non-Tier 1 inverters</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="budgetBuffer" onchange="calculate()" checked class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- PV INPUTS -->
+        <div id="pvInputs" class="bg-slate-950/60 border border-slate-800 p-5 rounded-2xl space-y-4">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="sliders" class="w-4 h-4"></i> 2. Off-Grid Load & Battery Inputs
+            </h2>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-xs font-medium text-slate-400">Daily Consumption Target (Wh/day)</label>
+                    <span id="pvTargetVal" class="text-sm font-bold text-amber-400">2,500 Wh/day</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="adjPV(-500)" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl font-bold text-sm text-amber-400">-500</button>
+                    <input type="number" id="pvTarget" value="2500" oninput="calculate()" class="w-full text-center bg-slate-900 border border-slate-700 rounded-xl font-bold text-white p-2 text-lg focus:ring-2 focus:ring-amber-500 outline-none">
+                    <button onclick="adjPV(500)" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl font-bold text-sm text-amber-400">+500</button>
+                </div>
+            </div>
+
+            <!-- CUSTOM VOLTAGE INPUT -->
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-xs font-medium text-slate-400">System DC Voltage (Volts)</label>
+                    <span id="voltVal" class="text-sm font-bold text-amber-400">24 V DC</span>
+                </div>
+                <div class="space-y-2">
+                    <input type="number" id="sysVoltInput" value="24" oninput="calculate()" placeholder="Enter Custom Voltage (e.g., 12, 24, 48, 96)" class="w-full text-center bg-slate-900 border border-slate-700 rounded-xl font-bold text-white p-2 text-lg focus:ring-2 focus:ring-amber-500 outline-none">
+                    <div class="grid grid-cols-4 gap-2 text-xs">
+                        <button onclick="setVolt(12)" class="py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-semibold border border-slate-700">12V Preset</button>
+                        <button onclick="setVolt(24)" class="py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-semibold border border-slate-700">24V Preset</button>
+                        <button onclick="setVolt(48)" class="py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-semibold border border-slate-700">48V Preset</button>
+                        <button onclick="setVolt(96)" class="py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-semibold border border-slate-700">96V Preset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PUMP INPUTS -->
+        <div id="pumpInputs" class="bg-slate-950/60 border border-slate-800 p-5 rounded-2xl space-y-4 hidden">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="sliders" class="w-4 h-4"></i> 2. Hydraulic Pumping Parameters
+            </h2>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-xs font-medium text-slate-400">Daily Water Target (m³/day)</label>
+                    <span id="pumpVolVal" class="text-sm font-bold text-amber-400">15 m³/day (15,000 L)</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="adjPump(-5)" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl font-bold text-sm text-amber-400">-5</button>
+                    <input type="number" id="pumpVol" value="15" oninput="calculate()" class="w-full text-center bg-slate-900 border border-slate-700 rounded-xl font-bold text-white p-2 text-lg focus:ring-2 focus:ring-amber-500 outline-none">
+                    <button onclick="adjPump(5)" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl font-bold text-sm text-amber-400">+5</button>
+                </div>
+            </div>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-xs font-medium text-slate-400">Total Dynamic Head / Lift (Meters)</label>
+                    <span id="pumpHeadVal" class="text-sm font-bold text-amber-400">40 Meters</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="adjHead(-5)" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl font-bold text-sm text-amber-400">-5</button>
+                    <input type="number" id="pumpHead" value="40" oninput="calculate()" class="w-full text-center bg-slate-900 border border-slate-700 rounded-xl font-bold text-white p-2 text-lg focus:ring-2 focus:ring-amber-500 outline-none">
+                    <button onclick="adjHead(5)" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl font-bold text-sm text-amber-400">+5</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- OUTPUT RESULTS -->
+        <div class="bg-slate-950 border-2 border-amber-500/40 p-6 rounded-2xl shadow-2xl space-y-4">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="calculator" class="w-4 h-4"></i> 3. System Design Specifications
+            </h2>
+            <div id="resultsGrid" class="grid sm:grid-cols-3 gap-4">
+                <!-- Dynamically Populated -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let mode = 'pv';
+
+        function setMode(m) {
+            mode = m;
+            document.getElementById('btnPV').className = m === 'pv' ? 'py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-amber-500 text-slate-950 shadow-md' : 'py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white';
+            document.getElementById('btnPump').className = m === 'pump' ? 'py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-amber-500 text-slate-950 shadow-md' : 'py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white';
+            document.getElementById('pvInputs').classList.toggle('hidden', m !== 'pv');
+            document.getElementById('pumpInputs').classList.toggle('hidden', m !== 'pump');
+            calculate();
+        }
+
+        function setVolt(v) {
+            document.getElementById('sysVoltInput').value = v;
+            calculate();
+        }
+
+        function adjPV(v) {
+            let el = document.getElementById('pvTarget');
+            el.value = Math.max(0, parseInt(el.value || 0) + v);
+            calculate();
+        }
+
+        function adjPump(v) {
+            let el = document.getElementById('pumpVol');
+            el.value = Math.max(0, parseInt(el.value || 0) + v);
+            calculate();
+        }
+
+        function adjHead(v) {
+            let el = document.getElementById('pumpHead');
+            el.value = Math.max(0, parseInt(el.value || 0) + v);
+            calculate();
+        }
+
+        function calculate() {
+            const psh = parseFloat(document.getElementById('regionSelect').value);
+            const buffer = document.getElementById('budgetBuffer').checked ? 1.5 : 1.2;
+            const res = document.getElementById('resultsGrid');
+
+            if(mode === 'pv') {
+                const wh = parseFloat(document.getElementById('pvTarget').value) || 0;
+                const sysVolt = parseFloat(document.getElementById('sysVoltInput').value) || 1;
+
+                document.getElementById('pvTargetVal').innerText = wh.toLocaleString() + ' Wh/day';
+                document.getElementById('voltVal').innerText = sysVolt + ' V DC';
+
+                const kwp = ((wh / psh) * 1.25 / 1000).toFixed(2);
+                const invKva = ((wh / 5) * buffer / 1000).toFixed(1);
+                const batteryAh = Math.round((wh * 1.3) / sysVolt);
+
+                res.innerHTML = `
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400">PV Array Capacity</div>
+                        <div class="text-2xl font-black text-amber-400 mt-1">${kwp} kWp</div>
+                        <div class="text-[10px] text-slate-500 mt-1">Recommended Solar Array</div>
+                    </div>
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400">Inverter Rating</div>
+                        <div class="text-2xl font-black text-white mt-1">${invKva} kVA</div>
+                        <div class="text-[10px] text-slate-500 mt-1">${sysVolt}V DC System Architecture</div>
+                    </div>
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400">Lithium Battery Bank</div>
+                        <div class="text-2xl font-black text-white mt-1">${batteryAh.toLocaleString()} Ah</div>
+                        <div class="text-[10px] text-slate-500 mt-1">Required @ ${sysVolt}V DC</div>
+                    </div>
+                `;
+            } else {
+                const vol = parseFloat(document.getElementById('pumpVol').value) || 0;
+                const head = parseFloat(document.getElementById('pumpHead').value) || 0;
+                document.getElementById('pumpVolVal').innerText = `${vol} m³/day (${(vol * 1000).toLocaleString()} L)`;
+                document.getElementById('pumpHeadVal').innerText = `${head} Meters`;
+
+                const hydraulicEnergyKwh = (vol * head * 2.725 / 1000) / 0.35;
+                const pumpPowerKw = (hydraulicEnergyKwh / 5).toFixed(2);
+                const pumpHp = (pumpPowerKw * 1.341).toFixed(1);
+                const arrayKwp = (pumpPowerKw * 1.4).toFixed(2);
+
+                res.innerHTML = `
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400">Pump Motor Power</div>
+                        <div class="text-2xl font-black text-amber-400 mt-1">${pumpHp} HP</div>
+                        <div class="text-[10px] text-slate-500 mt-1">${pumpPowerKw} kW Surface/Submersible</div>
+                    </div>
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400">Direct PV Array</div>
+                        <div class="text-2xl font-black text-white mt-1">${arrayKwp} kWp</div>
+                        <div class="text-[10px] text-slate-500 mt-1">Dedicated Solar Array</div>
+                    </div>
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400">Hydraulic Daily Work</div>
+                        <div class="text-2xl font-black text-white mt-1">${hydraulicEnergyKwh.toFixed(1)} kWh</div>
+                        <div class="text-[10px] text-slate-500 mt-1">Pumping Duty Cycle</div>
+                    </div>
+                `;
+            }
+        }
+
+        lucide.createIcons();
+        calculate();
+    </script>
+</body>
+</html>
